@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from '@/lib/db/auth'
 import Login from '@/components/auth/Login'
 
 export default function LoginPage() {
@@ -15,8 +14,22 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     try {
-      await signIn(email, password)
-      router.push('/dashboard')
+      const { createSupabaseBrowserClient } = await import('@/lib/db/supabase')
+      const supabase = createSupabaseBrowserClient()
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (error) {
+        setError(error.message)
+        return
+      }
+
+      if (data.session) {
+        router.push('/dashboard')
+        router.refresh()
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
