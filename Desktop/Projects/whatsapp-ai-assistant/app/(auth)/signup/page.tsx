@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signUp } from '@/lib/db/auth'
 import Signup from '@/components/auth/Signup'
 
 export default function SignupPage() {
@@ -15,8 +14,25 @@ export default function SignupPage() {
     setLoading(true)
     setError('')
     try {
-      await signUp(email, password)
-      router.push('/dashboard')
+      const { createSupabaseBrowserClient } = await import('@/lib/db/supabase')
+      const supabase = createSupabaseBrowserClient()
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password
+      })
+
+      if (error) {
+        setError(error.message)
+        return
+      }
+
+      if (data.session) {
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        // No session means email confirmation is required
+        setError('Please check your email to confirm your account')
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Signup failed')
     } finally {
