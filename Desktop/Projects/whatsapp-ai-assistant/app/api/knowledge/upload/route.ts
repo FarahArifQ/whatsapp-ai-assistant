@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { generateEmbedding } from '@/lib/ai/embeddings'
 
-// Splits text into overlapping chunks so context isn't lost at boundaries
 function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
   const chunks: string[] = []
   let start = 0
@@ -14,28 +15,68 @@ function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
   return chunks
 }
 
+async function getOrCreateBusiness(userId: string) {
+  const supabase = createSupabaseServiceClient()
+
+  // Check if business already exists for this user
+  const { data: existing } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('user_id', userId)
+    .single()
+
+  if (existing) return existing
+
+  // Create a new business for this user
+  const { data: newBusiness, error } = await supabase
+    .from('businesses')
+    .insert({ user_id: userId, name: 'My Business' })
+    .select()
+    .single()
+
+  if (error) throw error
+  return newBusiness
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { text, businessId, fileName } = await req.json()
+    const cookieStore = await cookies()
+    const supabaseAuth = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll() },
+          setAll() {}
+        }
+      }
+    )
 
-    if (!text || !businessId) {
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { text, fileName } = await req.json()
+
+    if (!text) {
       return NextResponse.json(
-        { error: 'text and businessId are required' },
+        { error: 'text is required' },
         { status: 400 }
       )
     }
 
-    // Split the document into chunks
-    const chunks = chunkText(text)
+    // Get or create business for this user
+    const business = await getOrCreateBusiness(user.id)
 
-    // Generate embedding for each chunk and save to Supabase
+    const chunks = chunkText(text)
     const supabase = createSupabaseServiceClient()
     const inserts = []
 
     for (const chunk of chunks) {
       const embedding = await generateEmbedding(chunk)
       inserts.push({
-        business_id: businessId,
+        business_id: business.id,
         content: chunk,
         embedding,
         metadata: { fileName },
@@ -51,6 +92,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       chunksCreated: inserts.length,
+      businessId: business.id,
     })
 
   } catch (error) {
