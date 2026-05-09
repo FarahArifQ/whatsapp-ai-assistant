@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Database, MessageSquare, Settings, LogOut, MessageCircle, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const navItems = [
   { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -13,8 +13,22 @@ const navItems = [
 
 export function Sidebar() {
   const [open, setOpen] = useState(false)
+  const [userEmail, setUserEmail] = useState('My Business')
   const pathname = usePathname()
   const router = useRouter()
+
+  useEffect(() => {
+  async function getUser() {
+    try {
+      const response = await fetch('/api/me')
+      const data = await response.json()
+      if (data.email) setUserEmail(data.email)
+    } catch (e) {
+      console.log('could not get user', e)
+    }
+  }
+  getUser()
+}, [])
 
   async function handleLogout() {
     const { createSupabaseBrowserClient } = await import('@/lib/db/supabase')
@@ -58,10 +72,12 @@ export function Sidebar() {
       <div className="border-t border-slate-800 p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-700 text-sm font-semibold text-white">
-            WA
+            {userEmail.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">My Business</p>
+            <p className="truncate text-sm font-medium text-white">
+              {userEmail}
+            </p>
           </div>
           <button
             type="button"
