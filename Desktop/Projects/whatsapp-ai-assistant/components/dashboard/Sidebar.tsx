@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Database, MessageSquare, Settings, LogOut, MessageCircle, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
@@ -14,6 +14,15 @@ const navItems = [
 export function Sidebar() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleLogout() {
+    const { createSupabaseBrowserClient } = await import('@/lib/db/supabase')
+    const supabase = createSupabaseBrowserClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   const content = (
     <div className="flex h-full flex-col bg-[#0f172a] text-slate-200">
@@ -56,6 +65,7 @@ export function Sidebar() {
           </div>
           <button
             type="button"
+            onClick={handleLogout}
             className="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
             aria-label="Logout"
           >
