@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Copy, Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -18,6 +18,7 @@ export default function Settings() {
   const [showToken, setShowToken] = useState(false)
   const [savingWa, setSavingWa] = useState(false)
   const [savedWa, setSavedWa] = useState(false)
+  const [waError, setWaError] = useState('')
 
   const [botName, setBotName] = useState('Assistant')
   const [tone, setTone] = useState<'Professional' | 'Friendly' | 'Formal'>('Friendly')
@@ -25,24 +26,90 @@ export default function Settings() {
     'You are a helpful business assistant. Answer questions based on the provided knowledge base only.'
   )
   const [savingBot, setSavingBot] = useState(false)
+  const [savedBot, setSavedBot] = useState(false)
+  const [botError, setBotError] = useState('')
+
+  // Load existing settings on mount
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/business/settings')
+        const data = await res.json()
+        if (data.business) {
+          setPhoneId(data.business.whatsapp_phone_number_id ?? '')
+          setApiToken(data.business.whatsapp_token ?? '')
+          setBotName(data.business.bot_name ?? 'Assistant')
+          setPrompt(data.business.bot_persona ?? prompt)
+        }
+      } catch {
+        console.log('Could not load settings')
+      }
+    }
+    loadSettings()
+  }, [])
 
   const copy = (val: string) => {
     if (typeof navigator !== 'undefined') navigator.clipboard?.writeText(val)
   }
 
-  const saveWa = () => {
+  const saveWa = async () => {
     setSavingWa(true)
     setSavedWa(false)
-    setTimeout(() => {
+    setWaError('')
+    try {
+      const res = await fetch('/api/business/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          whatsapp_phone_number_id: phoneId,
+          whatsapp_token: apiToken,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setSavedWa(true)
+        setTimeout(() => setSavedWa(false), 3000)
+      } else {
+        setWaError(data.error ?? 'Failed to save')
+      }
+    } catch {
+      setWaError('Something went wrong')
+    } finally {
       setSavingWa(false)
-      setSavedWa(true)
-      setTimeout(() => setSavedWa(false), 3000)
-    }, 1000)
+    }
   }
 
-  const saveBot = () => {
+  const saveBot = async () => {
     setSavingBot(true)
-    setTimeout(() => setSavingBot(false), 1000)
+    setSavedBot(false)
+    setBotError('')
+    try {
+      const tonePrompts = {
+        Professional: 'Respond in a professional and concise manner.',
+        Friendly: 'Respond in a warm and friendly manner.',
+        Formal: 'Respond in a formal and structured manner.',
+      }
+      const fullPrompt = `You are ${botName}, a business assistant. ${tonePrompts[tone]} ${prompt}`
+      const res = await fetch('/api/business/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bot_name: botName,
+          bot_persona: fullPrompt,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setSavedBot(true)
+        setTimeout(() => setSavedBot(false), 3000)
+      } else {
+        setBotError(data.error ?? 'Failed to save')
+      }
+    } catch {
+      setBotError('Something went wrong')
+    } finally {
+      setSavingBot(false)
+    }
   }
 
   return (
@@ -55,7 +122,14 @@ export default function Settings() {
       {savedWa && (
         <div className="fixed right-6 top-6 z-50 flex items-center gap-2 rounded-lg bg-[#22c55e] px-4 py-3 text-sm font-medium text-white shadow-lg">
           <CheckCircle2 className="h-4 w-4" />
-          Settings saved successfully
+          WhatsApp settings saved successfully
+        </div>
+      )}
+
+      {savedBot && (
+        <div className="fixed right-6 top-6 z-50 flex items-center gap-2 rounded-lg bg-[#22c55e] px-4 py-3 text-sm font-medium text-white shadow-lg">
+          <CheckCircle2 className="h-4 w-4" />
+          Bot persona saved successfully
         </div>
       )}
 
@@ -121,6 +195,8 @@ export default function Settings() {
             </div>
           </Field>
 
+          {waError && <p className="text-sm text-red-500">{waError}</p>}
+
           <button
             type="button"
             onClick={saveWa}
@@ -174,6 +250,8 @@ export default function Settings() {
             />
             <p className="mt-1 text-right text-xs text-slate-400">{prompt.length} / 2000 characters</p>
           </Field>
+
+          {botError && <p className="text-sm text-red-500">{botError}</p>}
 
           <button
             type="button"

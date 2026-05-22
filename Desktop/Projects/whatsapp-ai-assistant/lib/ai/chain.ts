@@ -4,8 +4,7 @@ import { generateEmbedding } from './embeddings'
 import { buildSystemPrompt } from './prompts'
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 async function retrieveContext(
   query: string,
   businessId: string
