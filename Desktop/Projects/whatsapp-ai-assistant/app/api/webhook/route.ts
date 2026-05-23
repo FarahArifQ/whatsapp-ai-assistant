@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
   const challenge = searchParams.get('hub.challenge')
 
   if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
-    console.log('Webhook verified by Meta')
     return new NextResponse(challenge, { status: 200 })
   }
 
@@ -59,7 +58,6 @@ export async function POST(req: NextRequest) {
     const customerMessage = message.text.body
     const phoneNumberId = change.value.metadata.phone_number_id
 
-    console.log(`Message from ${customerPhone}: ${customerMessage}`)
 
     // Look up which business owns this WhatsApp number
     const supabase = createSupabaseServiceClient()
@@ -73,7 +71,6 @@ export async function POST(req: NextRequest) {
     const businessId = business?.id ?? 'test-business-001'
     const botPersona = business?.bot_persona ?? undefined
 
-    console.log(`Business: ${businessId}`)
 
     // Get conversation history from Redis
     const history = await getConversationHistory(customerPhone)
