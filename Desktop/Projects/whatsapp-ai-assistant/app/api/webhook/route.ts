@@ -107,23 +107,21 @@ export async function POST(req: NextRequest) {
     })
 
     // Save to Supabase with business_id
- const insertResult = await supabase.from('conversations').insert([
-  {
-    business_id: businessId,
-    customer_phone: customerPhone,
-    message: customerMessage,
-    role: 'customer',
-  },
-  {
-    business_id: businessId,
-    customer_phone: customerPhone,
-    message: aiReply,
-    role: 'assistant',
-  },
-])
-
-console.log('Insert result:', JSON.stringify(insertResult))
-console.log('Business ID used:', businessId)
+    const { error } = await supabase.from('conversations').insert([
+      {
+        business_id: businessId,
+        customer_phone: customerPhone,
+        message: customerMessage,
+        role: 'customer',
+      },
+      {
+        business_id: businessId,
+        customer_phone: customerPhone,
+        message: aiReply,
+        role: 'assistant',
+      },
+    ])
+    if (error) console.error('Insert error:', error)
 
     return new NextResponse('OK', { status: 200 })
 
