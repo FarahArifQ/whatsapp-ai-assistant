@@ -5,6 +5,7 @@ import { runChain } from '@/lib/ai/chain'
 import {
   getConversationHistory,
   addMessageToHistory,
+  redis,
 } from '@/lib/memory/redis'
 import { createSupabaseServiceClient } from '@/lib/db/supabase'
 import type { WhatsAppWebhookBody } from '@/lib/whatsapp/types'
@@ -32,6 +33,17 @@ export async function POST(req: NextRequest) {
     if (appSecret && !verifyWebhookSignature(rawBody, signature, appSecret)) {
       console.error('Invalid webhook signature')
       return new NextResponse('Unauthorized', { status: 401 })
+    }
+
+    const clientIp = req.headers.get('x-forwarded-for') || 'unknown'
+    const rateLimitKey = `rate_limit:${clientIp}`
+    const requests = await redis.incr(rateLimitKey)
+    if (requests === 1) {
+      await redis.expire(rateLimitKey, 60)
+    }
+    if (requests > 30) {
+      console.log('Rate limit exceeded for IP:', clientIp)
+      return new NextResponse('Too Many Requests', { status: 429 })
     }
 
     const body: WhatsAppWebhookBody = JSON.parse(rawBody)
@@ -95,20 +107,23 @@ export async function POST(req: NextRequest) {
     })
 
     // Save to Supabase with business_id
-    await supabase.from('conversations').insert([
-      {
-        business_id: businessId,
-        customer_phone: customerPhone,
-        message: customerMessage,
-        role: 'customer',
-      },
-      {
-        business_id: businessId,
-        customer_phone: customerPhone,
-        message: aiReply,
-        role: 'assistant',
-      },
-    ])
+ const insertResult = await supabase.from('conversations').insert([
+  {
+    business_id: businessId,
+    customer_phone: customerPhone,
+    message: customerMessage,
+    role: 'customer',
+  },
+  {
+    business_id: businessId,
+    customer_phone: customerPhone,
+    message: aiReply,
+    role: 'assistant',
+  },
+])
+
+console.log('Insert result:', JSON.stringify(insertResult))
+console.log('Business ID used:', businessId)
 
     return new NextResponse('OK', { status: 200 })
 

@@ -27,7 +27,7 @@ export default function SignupPage() {
       }
 
       if (data.session) {
-        router.push('/dashboard')
+        router.push('/onboarding')
         router.refresh()
       } else {
         // No session means email confirmation is required
