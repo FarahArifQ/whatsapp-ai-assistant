@@ -39,7 +39,7 @@ function Navbar() {
   const links = [
     { href: "#features", label: "Features" },
     { href: "#how-it-works", label: "How it works" },
-    { href: "#pricing", label: "Pricing" },
+    // { href: "#pricing", label: "Pricing" },
   ];
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -494,7 +494,7 @@ export default function Landing() {
         <SocialProof />
         <HowItWorks />
         <Features />
-        <Pricing />
+        {/* <Pricing /> */}
         <FAQ />
         <CTA />
       </main>
