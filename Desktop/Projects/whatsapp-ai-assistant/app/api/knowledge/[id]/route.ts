@@ -5,9 +5,10 @@ import { cookies } from 'next/headers'
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const cookieStore = await cookies()
     const supabaseAuth = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,7 +47,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('knowledge_chunks')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('business_id', business.id)
 
     if (error) throw error
