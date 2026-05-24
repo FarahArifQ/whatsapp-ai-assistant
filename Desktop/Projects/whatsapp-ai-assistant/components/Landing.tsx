@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import {
   Menu,
   X,
@@ -26,7 +28,7 @@ const WhatsAppIcon = ({ className = "" }: { className?: string }) => (
 );
 
 const Logo = () => (
-  <Link to="/" className="flex items-center gap-2">
+  <Link href="/" className="flex items-center gap-2">
     <WhatsAppIcon className="h-9 w-9" />
     <span className="text-lg font-bold text-[#0f172a]">WA Assistant</span>
   </Link>
@@ -56,7 +58,7 @@ function Navbar() {
         </div>
         <div className="hidden md:block">
           <Link
-            to="/signup"
+            href="/signup"
             className="inline-flex items-center rounded-lg bg-[#22c55e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#16a34a]"
           >
             Get Started Free
@@ -84,7 +86,7 @@ function Navbar() {
               </a>
             ))}
             <Link
-              to="/signup"
+              href="/signup"
               className="mt-2 block rounded-lg bg-[#22c55e] px-4 py-2 text-center text-sm font-semibold text-white"
             >
               Get Started Free
@@ -134,7 +136,7 @@ function Hero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              to="/signup"
+              href="/signup"
               className="inline-flex items-center justify-center rounded-lg bg-[#0f172a] px-6 py-3 text-sm font-semibold text-white hover:bg-[#1e293b]"
             >
               Start Free Trial
@@ -363,7 +365,7 @@ function Pricing() {
                 ))}
               </ul>
               <Link
-                to={p.href}
+                href={p.href}
                 className={`mt-8 block rounded-lg px-4 py-3 text-center text-sm font-semibold ${
                   p.popular
                     ? "bg-[#22c55e] text-white hover:bg-[#16a34a]"
@@ -447,7 +449,7 @@ function CTA() {
           WhatsApp replies.
         </p>
         <Link
-          to="/signup"
+          href="/signup"
           className="mt-8 inline-flex items-center justify-center rounded-lg bg-[#22c55e] px-8 py-3 text-base font-semibold text-white hover:bg-[#16a34a]"
         >
           Start Free Trial
@@ -469,7 +471,7 @@ function Footer() {
         </div>
         <div className="flex flex-col gap-3 md:items-end">
           <div className="flex gap-6 text-sm font-medium text-slate-600">
-            <Link to="/privacy" className="hover:text-[#0f172a]">
+            <Link href="/privacy" className="hover:text-[#0f172a]">
               Privacy Policy
             </Link>
             <a href="#contact" className="hover:text-[#0f172a]">
