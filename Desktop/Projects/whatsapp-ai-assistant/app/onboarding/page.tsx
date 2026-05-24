@@ -49,7 +49,6 @@ export default function OnboardingPage() {
         body: JSON.stringify({
           text: docContent,
           fileName: docName || 'Getting Started',
-          businessId: '00000000-0000-0000-0000-000000000001',
         }),
       })
       const data = await res.json()

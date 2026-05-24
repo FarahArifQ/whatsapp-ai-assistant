@@ -2,9 +2,10 @@
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
 
 export default function KnowledgePage() {
-  async function handleUpload(text: string, fileName: string): Promise<{ success: boolean; chunksCreated?: number; error?: string }> {
-    if (!text.trim()) return { success: false, error: 'No text provided' }
-
+  async function handleUpload(
+    text: string,
+    fileName: string
+  ): Promise<{ success: boolean; chunksCreated?: number; error?: string }> {
     try {
       const res = await fetch('/api/knowledge/upload', {
         method: 'POST',
@@ -12,10 +13,13 @@ export default function KnowledgePage() {
         body: JSON.stringify({
           text,
           fileName: fileName || 'manual-entry',
-          businessId: '00000000-0000-0000-0000-000000000001',
         }),
       })
-      return res.json()
+      const data = await res.json()
+      if (data.success) {
+        return { success: true, chunksCreated: data.chunksCreated }
+      }
+      return { success: false, error: data.error }
     } catch {
       return { success: false, error: 'Something went wrong' }
     }

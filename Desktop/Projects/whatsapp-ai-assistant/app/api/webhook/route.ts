@@ -67,8 +67,11 @@ export async function POST(req: NextRequest) {
       .eq('whatsapp_phone_number_id', phoneNumberId)
       .single()
 
-    // If no business found use fallback business ID for testing
-    const businessId = business?.id ?? 'test-business-001'
+    if (!business) {
+      console.log('No business found for phone:', phoneNumberId)
+      return new NextResponse('OK', { status: 200 })
+    }
+    const businessId = business.id
     const botPersona = business?.bot_persona ?? undefined
 
 

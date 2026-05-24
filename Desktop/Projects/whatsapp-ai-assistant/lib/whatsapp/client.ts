@@ -6,7 +6,7 @@ export async function sendWhatsAppMessage(
   message: string,     // the text to send
   phoneNumberId: string
 ): Promise<void> {
-  const url = `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`
+  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`
 
   await axios.post(
     url,

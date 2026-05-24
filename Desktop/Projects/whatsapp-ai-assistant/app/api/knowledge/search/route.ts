@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase.rpc('match_knowledge', {
       query_embedding: embedding,
       match_count: 5,
+      p_business_id: businessId,
     })
 
     if (error) throw error
