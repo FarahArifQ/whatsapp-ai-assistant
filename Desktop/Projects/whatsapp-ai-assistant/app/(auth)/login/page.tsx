@@ -10,6 +10,15 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  async function handleGoogleLogin() {
+    const { createSupabaseBrowserClient } = await import('@/lib/db/supabase')
+    const supabase = createSupabaseBrowserClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/callback` },
+    })
+  }
+
   async function handleLogin() {
     setLoading(true)
     setError('')
@@ -46,6 +55,7 @@ export default function LoginPage() {
       error={error}
       loading={loading}
       onLogin={handleLogin}
+      onGoogleLogin={handleGoogleLogin}
     />
   )
 }
