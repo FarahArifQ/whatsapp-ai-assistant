@@ -11,12 +11,21 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
 
   async function handleGoogleLogin() {
-    const { createSupabaseBrowserClient } = await import('@/lib/db/supabase')
-    const supabase = createSupabaseBrowserClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/callback` },
-    })
+    setLoading(true)
+    setError('')
+    try {
+      const { createSupabaseBrowserClient } = await import('@/lib/db/supabase')
+      const supabase = createSupabaseBrowserClient()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/callback` },
+      })
+      if (error) setError(error.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Google sign-in failed')
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleSignup() {
