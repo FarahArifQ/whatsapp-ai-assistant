@@ -11,10 +11,12 @@ type ConversationRow = {
 type Props = {
   totalMessages: number
   totalChunks: number
+  activeConversations: number
+  responseRate: number | null
   recentConversations: ConversationRow[]
 }
 
-export default function Overview({ totalMessages, totalChunks, recentConversations }: Props) {
+export default function Overview({ totalMessages, totalChunks, activeConversations, responseRate, recentConversations }: Props) {
   const today = new Date().toLocaleDateString(undefined, {
     weekday: 'long',
     year: 'numeric',
@@ -33,7 +35,7 @@ export default function Overview({ totalMessages, totalChunks, recentConversatio
     },
     {
       label: 'Active Conversations',
-      value: '—',
+      value: activeConversations.toLocaleString(),
       icon: Users,
       iconBg: 'bg-blue-100',
       iconColor: 'text-blue-600',
@@ -47,7 +49,7 @@ export default function Overview({ totalMessages, totalChunks, recentConversatio
     },
     {
       label: 'Response Rate',
-      value: '—',
+      value: responseRate !== null ? `${responseRate}%` : '—',
       icon: Zap,
       iconBg: 'bg-amber-100',
       iconColor: 'text-amber-600',
@@ -63,7 +65,13 @@ export default function Overview({ totalMessages, totalChunks, recentConversatio
           <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Overview</h1>
           <p className="mt-1 text-sm text-slate-500">Welcome back, here's what's happening.</p>
         </div>
-        <p className="text-sm text-slate-500">{today}</p>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs text-slate-400">Live</span>
+          </div>
+          <p className="text-sm text-slate-500">{today}</p>
+        </div>
       </header>
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
