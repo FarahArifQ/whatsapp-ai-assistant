@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"c:\\\\Users\\\\hec\" fetch origin)",
+      "Bash(git -C \"c:\\\\Users\\\\hec\" log --oneline origin/main..main)"
+    ]
+  }
+}
