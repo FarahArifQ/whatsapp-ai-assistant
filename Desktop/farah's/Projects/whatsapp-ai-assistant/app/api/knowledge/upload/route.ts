@@ -3,6 +3,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { generateEmbedding } from '@/lib/ai/embeddings'
+import pdfParse from 'pdf-parse'
 
 function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
   const chunks: string[] = []
@@ -57,7 +58,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { text, fileName } = await req.json()
+    let text: string
+    let fileName: string
+
+    const contentType = req.headers.get('content-type') ?? ''
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData()
+      const file = formData.get('file') as File | null
+
+      if (!file) {
+        return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+      }
+
+      const arrayBuffer = await file.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      const pdfData = await pdfParse(buffer)
+      text = pdfData.text
+      fileName = file.name
+    } else {
+      const body = await req.json()
+      text = body.text
+      fileName = body.fileName
+    }
 
     if (!text) {
       return NextResponse.json(
