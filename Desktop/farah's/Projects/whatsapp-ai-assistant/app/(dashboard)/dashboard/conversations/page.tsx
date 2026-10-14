@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { createSupabaseServiceClient } from '@/lib/db/supabase'
-import Conversations from '@/components/dashboard/Conversations'
+import ConversationsLiveWrapper from '@/components/dashboard/ConversationsLiveWrapper'
 
 async function getConversations() {
   const cookieStore = await cookies()
@@ -41,5 +41,5 @@ async function getConversations() {
 
 export default async function ConversationsPage() {
   const conversations = await getConversations()
-  return <Conversations conversations={conversations} />
+  return <ConversationsLiveWrapper initial={conversations} />
 }

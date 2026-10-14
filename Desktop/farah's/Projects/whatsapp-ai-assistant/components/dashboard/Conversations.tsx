@@ -2,6 +2,22 @@
 import { useState } from 'react'
 import { MessageSquare } from 'lucide-react'
 
+function renderMessage(text: string): React.ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <strong key={i}>{part.slice(1, -1)}</strong>
+    }
+    return part
+  })
+}
+
+function stripMarkdown(text: string): string {
+  return text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1')
+}
+
 type ConversationRow = {
   id: string
   customer_phone: string
@@ -54,7 +70,7 @@ export default function Conversations({ conversations }: Props) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-900">{phone}</p>
-                    <p className="truncate text-xs text-slate-500">{last?.message}</p>
+                    <p className="truncate text-xs text-slate-500">{last ? stripMarkdown(last.message) : ''}</p>
                   </div>
                 </button>
               )
@@ -85,7 +101,7 @@ export default function Conversations({ conversations }: Props) {
                           : 'rounded-bl-sm bg-white text-slate-900'
                       }`}
                     >
-                      <p>{m.message}</p>
+                      <p>{renderMessage(m.message)}</p>
                       <p className="mt-1 text-[10px] text-slate-400" suppressHydrationWarning>
                         {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
